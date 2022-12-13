@@ -1,14 +1,19 @@
 use uuid::Uuid;
 use std::fmt;
 
-struct VPNConfig {
+
+pub struct VPN {
+    pub name: String,
+    pub command: String,
+}
+
+pub struct VPNConfig {
     pub name: String,
     pub username: String,
     pub password: String,
     pub id: Uuid,
-    vpn_type: String,
+    pub vpn_type: String,
 }
-
 
 
 impl VPNConfig {
@@ -29,9 +34,29 @@ impl VPNConfig {
 }
 
 
-
-
 impl fmt::Display for VPNConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.to_string().as_ref())
+    }
+}
+
+
+impl VPN {
+    pub fn new(name: String, command: String) -> Self {
+        VPN {
+            name,
+            command,
+        }
+    }
+
+
+    pub fn to_string(&self) -> String {
+        format!("vpn_type: {}\n  vpn_commad: {}\n", self.name,self.command)
+    }
+}
+
+
+impl fmt::Display for VPN {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.to_string().as_ref())
     }
