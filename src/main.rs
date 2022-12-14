@@ -1,16 +1,15 @@
 mod vpnconf;
 mod database;
 
-use std::{env, fs};
-use std::env::{current_dir, current_exe};
-use std::f64::consts::E;
-use std::fmt::Debug;
-use std::path::Path;
-use rusqlite::{params, Connection, Result};
-use crate::Cmd::{Connect, Delete, Edit, Insert, Help, List, Version};
+use std::env;
+use std::env::{current_exe};
+use crate::Cmd::{Connect, Delete, Edit, Insert, Help, List, Version, InsertVPN};
+use crate::database::DB;
+use crate::vpnconf::{VPNConfig, VPN};
 
 enum Cmd {
     Insert,
+    InsertVPN,
     Edit,
     Delete,
     Connect,
@@ -19,11 +18,33 @@ enum Cmd {
     Version,
 }
 
-fn add_config() {}
+fn add_config(db: DB, name: String, username: String, password: String, vpn_type: String, address: String) {
+    let vconf = VPNConfig::new(name, vpn_type, username, password, address);
 
-fn connect() {}
+
+    let result = db.insert_vpn_config(vconf);
+}
+
+fn add_vpn(db: DB, name: String, command: String) {
+    let vpn = VPN::new(name,command);
+    let result = db.insert_vpn(vpn);
+
+}
+
+fn connect(name: String) {}
 
 fn edit() {}
+
+fn delete(name: String) {}
+
+fn version() {
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+    println!("vpn connector - version {}", VERSION);
+}
+
+fn list_vpn_and_configs() {}
+
+fn help() {}
 
 
 fn main() {
@@ -43,7 +64,8 @@ fn main() {
 
     let com = match args[1].as_str() {
         "-a" => Insert,
-        "-c" => Connect,
+        "-A" => InsertVPN,
+        "-c" | "--connect" => Connect,
         "-e" => Edit,
         "-d" => Delete,
         "-l" => List,
@@ -54,10 +76,16 @@ fn main() {
     };
 
 
-
     match com {
-        Insert if args.len() > 1 => add_config(),
-        Connect if args.len() > 1 => connect(),
+        Insert  if args.len() == 7 => add_config(db, args[2].to_string(), args[3].to_string(), args[4].to_string(), args[5].to_string(), args[6].to_string()),
+        InsertVPN if args.len() == 4 => add_vpn(db, args[2].to_string(),args[3].to_string()),
+        Connect if args.len() == 3 => connect(args[2].to_string()),
+        Connect if args.len() == 2 => connect(args[1].to_string()),
+        Delete  if args.len() == 3 => delete(args[2].to_string()),
+        Delete  if args.len() == 2 => delete(args[1].to_string()),
+        List => list_vpn_and_configs(),
+        Version => version(),
+
         Edit if args.len() > 1 => edit(),
         _ => println!("wrong input size or argument !!! ")
     }
