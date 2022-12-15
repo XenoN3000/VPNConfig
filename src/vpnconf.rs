@@ -11,7 +11,7 @@ pub struct VPNConfig {
     pub name: String,
     pub username: String,
     pub password: String,
-    pub id: Uuid,
+    pub id: String,
     pub address: String,
     pub vpn_type: String,
 
@@ -24,7 +24,7 @@ impl VPNConfig {
             name,
             username,
             password,
-            id: Uuid::new_v4(),
+            id: Uuid::new_v4().to_string(),
             address,
             vpn_type,
         }

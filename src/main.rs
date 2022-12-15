@@ -6,6 +6,8 @@ use std::env::{current_exe};
 use crate::Cmd::{Connect, Delete, Edit, Insert, Help, List, Version, InsertVPN};
 use crate::database::DB;
 use crate::vpnconf::{VPNConfig, VPN};
+use std::process::Command;
+
 
 enum Cmd {
     Insert,
@@ -26,12 +28,23 @@ fn add_config(db: DB, name: String, username: String, password: String, vpn_type
 }
 
 fn add_vpn(db: DB, name: String, command: String) {
-    let vpn = VPN::new(name,command);
+    let vpn = VPN::new(name, command);
     let result = db.insert_vpn(vpn);
-
 }
 
-fn connect(name: String) {}
+fn connect(db: DB, name: String) {
+    let conf = db.get_vpn_config(name).unwrap();
+    let vpn = db.get_vpn(conf.vpn_type.clone()).unwrap();
+
+    let command = format!("printf \"%s\n%s\n%s\n\" \"{}\" \"{}\" \"{}\" | {}", "yes", conf.username.as_str(), conf.address.as_str(), vpn.command);
+
+    Command::new("sh")
+        .arg("-c")
+        .arg(command)
+        .spawn()
+        .expect("failed !!! ")
+        .stdout;
+}
 
 fn edit() {}
 
@@ -78,9 +91,9 @@ fn main() {
 
     match com {
         Insert  if args.len() == 7 => add_config(db, args[2].to_string(), args[3].to_string(), args[4].to_string(), args[5].to_string(), args[6].to_string()),
-        InsertVPN if args.len() == 4 => add_vpn(db, args[2].to_string(),args[3].to_string()),
-        Connect if args.len() == 3 => connect(args[2].to_string()),
-        Connect if args.len() == 2 => connect(args[1].to_string()),
+        InsertVPN if args.len() == 4 => add_vpn(db, args[2].to_string(), args[3].to_string()),
+        Connect if args.len() == 3 => connect(db, args[2].to_string()),
+        Connect if args.len() == 2 => connect(db, args[1].to_string()),
         Delete  if args.len() == 3 => delete(args[2].to_string()),
         Delete  if args.len() == 2 => delete(args[1].to_string()),
         List => list_vpn_and_configs(),
